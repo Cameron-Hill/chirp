@@ -12,7 +12,7 @@ import {
 const filterUserForClient = (user: User) => {
   return {
     id: user.id,
-    name: user.username,
+    name: user.username ?? user.firstName ?? "Unknown",
     profilePicture: user.profileImageUrl,
   };
 };
@@ -25,15 +25,12 @@ export const postsRouter = createTRPCRouter({
         createdAt: "desc",
       },
     });
-    console.log("posts", posts);
     const users = (
       await clerkClient.users.getUserList({
         userId: posts.map((post) => post.authorId),
         limit: 100,
       })
     ).map(filterUserForClient);
-
-    console.log("users", users);
 
     return posts.map((post) => {
       const author = users.find((user) => user.id === post.authorId);
@@ -43,13 +40,12 @@ export const postsRouter = createTRPCRouter({
           message: "Author not found",
         });
       }
-      const authorName = author.name ?? "Unknown";
-      console.log(`Author: ${authorName}`, author);
+
       return {
         post,
         author: {
           ...author,
-          name: authorName,
+          name: author.name,
         },
       };
     });

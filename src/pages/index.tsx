@@ -8,7 +8,9 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import type { RouterOutputs } from "~/utils/api";
 import Image from "next/image";
-import { LoadingPage } from "~/components/loading";
+import { LoadingPage, LoadingSpinner } from "~/components/loading";
+import toast from "react-hot-toast";
+import { TRPCClientError } from "@trpc/client";
 
 dayjs.extend(relativeTime);
 
@@ -18,12 +20,20 @@ const CreatePostWizard = () => {
 
   const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
     onSuccess: () => {
-      void ctx.posts.getAll.invalidate();  // void this to avoid promise warning
+      void ctx.posts.getAll.invalidate(); // void this to avoid promise warning
+    },
+    onError: (err) => {
+      const error = err.data?.zodError?.fieldErrors?.content;
+      if (error && error[0]) {
+        toast.error(error[0]);
+      } else {
+        console.error(err);
+        toast.error("Something went wrong. Please try again later.");
+      }
     },
   });
 
   if (!user) return null;
-  console.log(user);
   return (
     <div className="flex w-full gap-3">
       <Image
@@ -38,12 +48,17 @@ const CreatePostWizard = () => {
         className="grow bg-transparent outline-none"
         disabled={isPosting}
         onKeyDown={(e) => {
-          if (e.key === "Enter") {
+          if (e.key === "Enter" && !isPosting) {
             mutate({ content: e.currentTarget.value });
             e.currentTarget.value = "";
           }
         }}
       />
+      {isPosting && (
+        <div className="flex items-center justify-center">
+          <LoadingSpinner size={24} />
+        </div>
+      )}
     </div>
   );
 };

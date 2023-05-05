@@ -14,6 +14,14 @@ dayjs.extend(relativeTime);
 
 const CreatePostWizard = () => {
   const { user } = useUser();
+  const ctx = api.useContext();
+
+  const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
+    onSuccess: () => {
+      void ctx.posts.getAll.invalidate();  // void this to avoid promise warning
+    },
+  });
+
   if (!user) return null;
   console.log(user);
   return (
@@ -28,6 +36,13 @@ const CreatePostWizard = () => {
       <input
         placeholder="Type Some emojis!"
         className="grow bg-transparent outline-none"
+        disabled={isPosting}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            mutate({ content: e.currentTarget.value });
+            e.currentTarget.value = "";
+          }
+        }}
       />
     </div>
   );
@@ -52,7 +67,7 @@ const PostView = (props: PostWithUser) => {
             post.createdAt
           ).fromNow()}`}</span>
         </div>
-        <span>{post.content}</span>
+        <span className="text-2xl">{post.content}</span>
       </div>
     </div>
   );

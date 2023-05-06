@@ -18,7 +18,7 @@ const RegisterPage = () => {
   });
   if (!callMade && !isLoading) {
     setCallMade(true);
-    mutate({});
+    mutate();
   }
   return (
     <div className="h-screen">

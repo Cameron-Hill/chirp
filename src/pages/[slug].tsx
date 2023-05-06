@@ -10,6 +10,8 @@ import { generateSSHHelper } from "~/server/helpers/sshHelper";
 import { use, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { set } from "zod";
+import { LoaderIcon, toast } from "react-hot-toast";
+import { useRouter } from "next/router";
 
 type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
 
@@ -93,18 +95,40 @@ const EditMenu = ({ editable, setEditable, onConfirm }: EditMenuProps) => {
 const ProfilePage: NextPage<PageProps> = ({ username }) => {
   const { user: currentUser, isSignedIn: isCurrentUserSignedIn } = useUser();
   const [editable, setEditable] = useState(false);
-  console.log(editable);
   const { data } = api.user.getByUserName.useQuery({
     userName: username,
   });
-
+  const { mutate, isLoading } = api.user.update.useMutation();
   const [userNameValue, setUserNameValue] = useState(data?.userName);
+  const router = useRouter();
+
   if (!userNameValue && userNameValue !== "") {
     return <div>404</div>;
   }
   if (!data) {
     return <div>404</div>;
   }
+
+  const handleConfirm = () => {
+    console.log(`Submitting username change ${userNameValue}`);
+    if (!isLoading) {
+      mutate(
+        { userName: userNameValue },
+        {
+          onSuccess: (user) => {
+            setEditable(false);
+            void router.push(`/@${user.userName}`).then(() => {
+              console.log("success");
+            });
+          },
+          onError: (e) => {
+            console.log(e);
+            toast.error("Failed to update username");
+          },
+        }
+      );
+    }
+  };
 
   return (
     <>
@@ -123,13 +147,16 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
         </div>
 
         <div className="h-[64px]">
-          {isCurrentUserSignedIn && currentUser?.id === data.id && (
-            <EditMenu
-              editable={editable}
-              setEditable={setEditable}
-              onConfirm={() => console.log(userNameValue)}
-            />
-          )}
+          {isCurrentUserSignedIn &&
+            currentUser?.id === data.id &&
+            !isLoading && (
+              <EditMenu
+                editable={editable}
+                setEditable={setEditable}
+                onConfirm={handleConfirm}
+              />
+            )}
+          {isLoading && <LoaderIcon />}
         </div>
         <div className="p-4 text-2xl">
           {!editable && `@${data.userName}`}
@@ -140,6 +167,11 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
                 className="border-b border-slate-400 bg-inherit"
                 value={userNameValue}
                 width={userNameValue.length * 16}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleConfirm();
+                  }
+                }}
                 onChange={(e) => {
                   setUserNameValue(e.target.value);
                   console.log(e.target.value);

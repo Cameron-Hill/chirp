@@ -70,7 +70,6 @@ export async function getStaticProps(
 ) {
   const helpers = generateSSHHelper();
   const slug = context.params?.slug;
-  console.log("Slug", slug);
   if (!slug) {
     throw new Error("No slug"); // Should return a new page or something
   }

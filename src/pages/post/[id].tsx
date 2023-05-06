@@ -10,7 +10,6 @@ type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
 
 const SinglePostPage: NextPage<PageProps> = ({ id }) => {
   const { data } = api.posts.getById.useQuery({ id });
-  console.log("Post", data);
   if (!data) {
     return <div>404</div>;
   }
@@ -31,7 +30,6 @@ export async function getStaticProps(
 ) {
   const helpers = generateSSHHelper();
   const id = context.params?.id;
-  console.log("Slug", id);
   if (!id) {
     throw new Error("No slug"); // Should return a new page or something
   }

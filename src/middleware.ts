@@ -2,7 +2,6 @@ import { withClerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export default withClerkMiddleware(() => {
-  // console.log("Running Clerk middleware")
   return NextResponse.next();
 });
 

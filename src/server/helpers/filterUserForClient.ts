@@ -1,9 +1,10 @@
-import type { User } from "@clerk/nextjs/dist/api";
+// import type { User } from "@clerk/nextjs/dist/api";
+import type { User } from "@prisma/client";
 const filterUserForClient = (user: User) => {
   return {
     id: user.id,
-    name: user.username ?? user.firstName ?? "Unknown",
-    profilePicture: user.profileImageUrl,
+    userName: user.userName,
+    profileImageUrl: user.profileImageUrl,
   };
 };
 export default filterUserForClient;

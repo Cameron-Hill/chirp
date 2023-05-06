@@ -15,7 +15,19 @@ model Post {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   content   String   @db.VarChar(255)
+  // author    User     @relation(fields: [authorId], references: [id])
   authorId  String
+  author    User?    @relation(fields: [authorId], references: [id])
 
   @@index([authorId])
+}
+
+model User {
+  id              String   @id
+  createdAt       DateTime @default(now())
+  userName        String   @unique
+  profileImageUrl String?
+  firstName       String?
+  lastName        String?
+  posts           Post[]
 }

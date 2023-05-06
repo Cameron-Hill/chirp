@@ -1,5 +1,3 @@
-import { User } from "@clerk/nextjs/dist/api";
-import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import filterUserForClient from "~/server/helpers/filterUserForClient";
@@ -11,7 +9,7 @@ import {
   publicProcedure,
   privateProcedure,
 } from "~/server/api/trpc";
-import type { Post } from "@prisma/client";
+import type { Post, Prisma, PrismaClient } from "@prisma/client";
 
 // Create a new ratelimiter, that allows 5 requests per 1 minute
 const ratelimit = new Ratelimit({
@@ -26,16 +24,26 @@ const ratelimit = new Ratelimit({
   prefix: "@upstash/ratelimit",
 });
 
-const addUserDataToPosts = async (posts: Post[]) => {
-  const users = (
-    await clerkClient.users.getUserList({
-      userId: posts.map((post) => post.authorId),
-      limit: 100,
-    })
-  ).map(filterUserForClient);
+type Context = {
+  prisma: PrismaClient<
+    Prisma.PrismaClientOptions,
+    never,
+    Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined
+  >;
+  userId: string | null;
+};
+
+const addUserDataToPosts = async (ctx: Context, posts: Post[]) => {
+  const users = await ctx.prisma.user.findMany({
+    where: {
+      id: { in: posts.map((post) => post.authorId) },
+    },
+  });
+
+  const filteredUsers = users.map(filterUserForClient);
 
   return posts.map((post) => {
-    const author = users.find((user) => user.id === post.authorId);
+    const author = filteredUsers.find((user) => user.id === post.authorId);
     if (!author) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -47,7 +55,7 @@ const addUserDataToPosts = async (posts: Post[]) => {
       post,
       author: {
         ...author,
-        name: author.name,
+        name: author.userName,
       },
     };
   });
@@ -61,7 +69,7 @@ export const postsRouter = createTRPCRouter({
         createdAt: "desc",
       },
     });
-    return addUserDataToPosts(posts);
+    return addUserDataToPosts(ctx, posts);
   }),
 
   getById: publicProcedure
@@ -77,7 +85,7 @@ export const postsRouter = createTRPCRouter({
         });
       }
 
-      return (await addUserDataToPosts([post]))[0];
+      return (await addUserDataToPosts(ctx, [post]))[0];
     }),
 
   getPostsByUserId: publicProcedure
@@ -91,7 +99,7 @@ export const postsRouter = createTRPCRouter({
           take: 100,
           orderBy: [{ createdAt: "desc" }],
         })
-        .then(addUserDataToPosts)
+        .then((post) => addUserDataToPosts(ctx, post))
     ),
 
   create: privateProcedure

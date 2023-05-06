@@ -9,11 +9,12 @@ dayjs.extend(relativeTime);
 export type PostWithUser = RouterOutputs["posts"]["getAll"][number];
 export const PostView = (props: PostWithUser) => {
   const { post, author } = props;
+  console.log(props);
   return (
     <div className="flex gap-3 border-b border-slate-400 p-4" key={post.id}>
       <Image
         className="h-12 w-12 rounded-full"
-        src={author.profilePicture}
+        src={author.profileImageUrl ?? "/default-profile-image.png"}
         alt="profile image"
         width={48}
         height={48}

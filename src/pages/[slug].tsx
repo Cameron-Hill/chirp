@@ -10,6 +10,7 @@ import Image from "next/image";
 import { PageLayout } from "~/components/layout";
 import { LoadingPage } from "~/components/loading";
 import { PostView } from "~/components/postView";
+import { generateSSHHelper } from "~/server/helpers/sshHelper";
 
 type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
 
@@ -67,11 +68,7 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
 export async function getStaticProps(
   context: GetStaticPropsContext<{ slug: string }>
 ) {
-  const helpers = createServerSideHelpers({
-    router: appRouter,
-    ctx: { prisma, userId: null },
-    transformer: superjson,
-  });
+  const helpers = generateSSHHelper();
   const slug = context.params?.slug;
   console.log("Slug", slug);
   if (!slug) {

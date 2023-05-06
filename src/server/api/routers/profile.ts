@@ -2,9 +2,6 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { Ratelimit } from "@upstash/ratelimit"; // for deno: see above
-import { Redis } from "@upstash/redis";
-
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import filterUserForClient from "~/server/helpers/filterUserForClient";
 

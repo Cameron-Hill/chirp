@@ -8,8 +8,29 @@ import superjson from "superjson";
 import { api } from "~/utils/api";
 import Image from "next/image";
 import { PageLayout } from "~/components/layout";
+import { LoadingPage } from "~/components/loading";
+import { PostView } from "~/components/postView";
 
 type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
+
+const ProfileFeed = (props: { userId: string }) => {
+  const { data, isLoading } = api.posts.getPostsByUserId.useQuery({
+    userId: props.userId,
+  });
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+  if (!data || data.length === 0) {
+    return <div>User has not posted</div>;
+  }
+  return (
+    <div>
+      {data.map((fullPost) => (
+        <PostView key={fullPost.post.id} {...fullPost} />
+      ))}
+    </div>
+  );
+};
 
 const ProfilePage: NextPage<PageProps> = ({ username }) => {
   const { data } = api.profile.getUserByUsername.useQuery({
@@ -36,7 +57,8 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
         </div>
         <div className="h-[64px]"></div>
         <div className="p-4 text-2xl">{`@${data.name}`}</div>
-        <div className="border-b border-slate-200"></div>
+        <div className="border-b border-slate-200" />
+        <ProfileFeed userId={data.id} />
       </PageLayout>
     </>
   );

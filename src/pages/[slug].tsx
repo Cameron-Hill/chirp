@@ -37,7 +37,6 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
   const { data } = api.profile.getUserByUsername.useQuery({
     username: username,
   });
-  console.log("Data", data);
   if (!data) {
     return <div>404</div>;
   }

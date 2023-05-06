@@ -46,7 +46,7 @@ const CreatePostWizard = () => {
         height="56"
       />
       <input
-        placeholder="Type Some emojis!"
+        placeholder="Type Some Emojis!"
         className="grow bg-transparent outline-none"
         disabled={isPosting}
         onKeyDown={(e) => {

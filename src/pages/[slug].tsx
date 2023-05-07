@@ -12,6 +12,7 @@ import { useUser } from "@clerk/nextjs";
 import { set } from "zod";
 import { LoaderIcon, toast } from "react-hot-toast";
 import { useRouter } from "next/router";
+import { userRouter } from "~/server/api/routers/user";
 
 type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
 
@@ -95,6 +96,7 @@ const EditMenu = ({ editable, setEditable, onConfirm }: EditMenuProps) => {
 const ProfilePage: NextPage<PageProps> = ({ username }) => {
   const { user: currentUser, isSignedIn: isCurrentUserSignedIn } = useUser();
   const [editable, setEditable] = useState(false);
+  const [isRouting, setIsRouting] = useState(false);
   const { data } = api.user.getByUserName.useQuery({
     userName: username,
   });
@@ -102,24 +104,38 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
   const [userNameValue, setUserNameValue] = useState(data?.userName);
   const router = useRouter();
 
-  if (!userNameValue && userNameValue !== "") {
-    return <div>404</div>;
-  }
+  const route = (path: string, message?: string | undefined) => {
+    if (!isRouting && router.isReady) {
+      setIsRouting(true);
+      void router.push(path).then(() => {
+        if (message) {
+          toast.error(message);
+        }
+      });
+      return <LoadingPage />;
+    }
+  };
+
   if (!data) {
-    return <div>404</div>;
+    route(`/`, `No User Found:  @${username}`);
+  }
+
+  if (!userNameValue && userNameValue !== "") {
+    return <LoadingPage />;
+  }
+
+  if (isRouting || !data || !userNameValue) {
+    return <LoadingPage />;
   }
 
   const handleConfirm = () => {
-    console.log(`Submitting username change ${userNameValue}`);
     if (!isLoading) {
       mutate(
         { userName: userNameValue },
         {
           onSuccess: (user) => {
             setEditable(false);
-            void router.push(`/@${user.userName}`).then(() => {
-              console.log("success");
-            });
+            void router.push(`/@${user.userName}`);
           },
           onError: (e) => {
             console.log(e);

@@ -11,7 +11,7 @@ export const PostView = (props: PostWithUser) => {
   const { post, author } = props;
   return (
     <div className="flex gap-3 border-b border-slate-400 p-4" key={post.id}>
-      <Link href={`/@${author.name}`}>
+      <Link href={`/@${author.name}`} className="shrink-0">
         <Image
           className="h-12 w-12 rounded-full"
           src={author.profileImageUrl ?? "/default-profile-image.png"}

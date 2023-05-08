@@ -36,7 +36,7 @@ const CreatePostWizard = () => {
   if (isLoading || !profileData) return <LoadingSpinner size={24} />;
   return (
     <div className="flex w-full gap-3">
-      <Link href={`/@${profileData.userName}`}>
+      <Link href={`/@${profileData.userName}`} className="shrink-0">
         <Image
           src={profileData.profileImageUrl ?? "/default-profile.png"}
           alt="profile image"

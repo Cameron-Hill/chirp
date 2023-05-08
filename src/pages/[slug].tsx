@@ -13,6 +13,7 @@ import { set } from "zod";
 import { LoaderIcon, toast } from "react-hot-toast";
 import { useRouter } from "next/router";
 import { userRouter } from "~/server/api/routers/user";
+import Upload from "~/components/upload";
 
 type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
 
@@ -97,11 +98,17 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
   const { user: currentUser, isSignedIn: isCurrentUserSignedIn } = useUser();
   const [editable, setEditable] = useState(false);
   const [isRouting, setIsRouting] = useState(false);
+  const ctx = api.useContext();
   const { data } = api.user.getByUserName.useQuery({
     userName: username,
   });
-  const { mutate, isLoading } = api.user.update.useMutation();
-  const [userNameValue, setUserNameValue] = useState(data?.userName);
+  const { mutate, isLoading } = api.user.update.useMutation({
+    onSuccess: () => {
+      toast.success("User Updated!");
+      void ctx.posts.getPostsByUserId.invalidate();
+    },
+  });
+  const [userData, setUserData] = useState(data);
   const router = useRouter();
 
   const route = (path: string, message?: string | undefined) => {
@@ -120,21 +127,24 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
     route(`/`, `No User Found:  @${username}`);
   }
 
-  if (!userNameValue && userNameValue !== "") {
+  if (!userData) {
     return <LoadingPage />;
   }
+  const profileImageUrl =
+    userData.profileImageUrl ?? "/default-profile-image.png";
 
-  if (isRouting || !data || !userNameValue) {
+  if (isRouting || !data || !userData.userName) {
     return <LoadingPage />;
   }
 
   const handleConfirm = () => {
     if (!isLoading) {
       mutate(
-        { userName: userNameValue },
+        { userName: userData.userName, profileImageUrl: profileImageUrl },
         {
           onSuccess: (user) => {
             setEditable(false);
+
             void router.push(`/@${user.userName}`);
           },
           onError: (e) => {
@@ -159,7 +169,27 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
             width={128}
             height={128}
             className="absolute bottom-0 left-0 -mb-[64px] ml-4 rounded-full border-4 border-slate-950"
+            style={
+              editable
+                ? {
+                    filter: "grayscale(50%)",
+                    borderWidth: "4px",
+                    borderColor: "white",
+                  }
+                : {}
+            }
           />
+          {editable && (
+            <div className="absolute bottom-0 left-[150px] -mb-[15px]">
+              <Upload
+                setImageUrl={(url) => {
+                  if (url) {
+                    setUserData({ ...userData, profileImageUrl: url });
+                  }
+                }}
+              />
+            </div>
+          )}
         </div>
 
         <div className="h-[64px]">
@@ -181,15 +211,15 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
               @
               <input
                 className="border-b border-slate-400 bg-inherit"
-                value={userNameValue}
-                width={userNameValue.length * 16}
+                value={userData.userName}
+                width={userData.userName.length * 16}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     handleConfirm();
                   }
                 }}
                 onChange={(e) => {
-                  setUserNameValue(e.target.value);
+                  setUserData({ ...userData, userName: e.target.value });
                   console.log(e.target.value);
                 }}
               />

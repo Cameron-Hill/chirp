@@ -88,7 +88,7 @@ export const userRouter = createTRPCRouter({
   }),
 
   update: privateProcedure
-    .input(z.object({ userName: z.string() }))
+    .input(z.object({ userName: z.string(), profileImageUrl: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const authorId = ctx.userId;
       const { success } = await ratelimit.limit(authorId);
@@ -100,6 +100,7 @@ export const userRouter = createTRPCRouter({
         },
         data: {
           userName: input.userName,
+          profileImageUrl: input.profileImageUrl,
         },
       });
       return user;

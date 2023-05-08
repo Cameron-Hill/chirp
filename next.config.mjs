@@ -8,7 +8,10 @@ await import("./src/env.mjs");
 const config = {
   reactStrictMode: true,
   images: {
-    domains: ["images.clerk.dev"],
+    domains: [
+      "images.clerk.dev",
+      "cameron-hill-profile-images.s3.eu-west-2.amazonaws.com",
+    ],
   },
 
   /**
@@ -29,6 +32,5 @@ const config = {
     ignoreDuringBuilds: true,
   },
   swcMinify: true,
-  
 };
 export default config;

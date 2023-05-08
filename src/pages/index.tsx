@@ -7,6 +7,7 @@ import { LoadingPage, LoadingSpinner } from "~/components/loading";
 import toast from "react-hot-toast";
 import { PageLayout } from "~/components/layout";
 import { PostView } from "~/components/postView";
+import Link from "next/link";
 
 const CreatePostWizard = () => {
   const { user } = useUser();
@@ -28,19 +29,22 @@ const CreatePostWizard = () => {
   });
 
   if (!user) return null;
+
   const { data: profileData, isLoading } = api.user.get.useQuery({
     userId: user.id,
   });
   if (isLoading || !profileData) return <LoadingSpinner size={24} />;
   return (
     <div className="flex w-full gap-3">
-      <Image
-        src={profileData.profileImageUrl ?? "/default-profile.png"}
-        alt="profile image"
-        className="h-14 w-14 rounded-full"
-        width="56"
-        height="56"
-      />
+      <Link href={`/@${profileData.userName}`}>
+        <Image
+          src={profileData.profileImageUrl ?? "/default-profile.png"}
+          alt="profile image"
+          className="h-14 w-14 rounded-full"
+          width="56"
+          height="56"
+        />
+      </Link>
       <input
         placeholder="Type Some Emojis!"
         className="grow bg-transparent outline-none"

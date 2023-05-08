@@ -187,6 +187,15 @@ const ProfilePage: NextPage<PageProps> = ({ username }) => {
                     setUserData({ ...userData, profileImageUrl: url });
                   }
                 }}
+                onError={(err) => {
+                  console.log(err);
+                  toast.error("Failed to upload image");
+                  setUserData({
+                    ...userData,
+                    profileImageUrl: data.profileImageUrl,
+                  });
+                  setEditable(false);
+                }}
               />
             </div>
           )}

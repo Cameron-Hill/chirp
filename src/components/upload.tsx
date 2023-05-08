@@ -1,11 +1,14 @@
-import { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
+import { toast } from "react-hot-toast";
 
 type UploadProps = {
   setImageUrl: (url: string | null) => void;
+  onError?: (err: any) => void;
 };
 
 export default function Upload({
   setImageUrl,
+  onError,
 }: PropsWithChildren<UploadProps>) {
   return (
     <input
@@ -19,7 +22,7 @@ export default function Upload({
             setImageUrl(url ?? null);
           })
           .catch((err) => {
-            console.log("Error: ", err);
+            if (onError) onError(err);
           });
       }}
       type="file"

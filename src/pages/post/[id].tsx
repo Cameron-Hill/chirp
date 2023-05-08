@@ -19,6 +19,7 @@ const SinglePostPage: NextPage<PageProps> = ({ id }) => {
         <title>{`Post ${data.post.content} - ${data.author.name}`}</title>
       </Head>
       <PageLayout>
+        <div className="h-20 w-full bg-slate-600"></div>
         <PostView {...data} />
       </PageLayout>
     </>

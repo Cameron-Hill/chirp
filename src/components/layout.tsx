@@ -12,7 +12,7 @@ export const PageLayout = ({
   return (
     <>
       {!homePage && (
-        <nav className="absolute left-0 top-0 ml-5 mt-3 text-5xl">
+        <nav className="absolute left-0 top-0 z-50 ml-5 mt-3 text-5xl">
           <Link href={"/"}>🏠</Link>
         </nav>
       )}
